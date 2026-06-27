@@ -255,14 +255,15 @@ def vault_health() -> Dict[str, Any]:
     """Bounded structural health summary of the vault.
 
     Reports counts plus capped samples of orphan notes (no inbound or outbound
-    links), broken wikilinks (target note missing), and notes with no
-    frontmatter. Bounded by the same file cap as search so it stays fast.
+    links), wanted notes (a link exists but the target note does not - a
+    wishlist, not an error), and notes with no frontmatter. Bounded by the same
+    file cap as search so it stays fast.
     """
     vault = resolve_vault()
     index = _stem_index(vault)
     note_paths: Dict[str, str] = {}
     missing_fm: List[str] = []
-    broken: List[Dict[str, str]] = []
+    wanted: List[Dict[str, str]] = []
     linked_to: set = set()
     has_outbound: set = set()
     count = 0
@@ -282,14 +283,14 @@ def vault_health() -> Dict[str, Any]:
         for link in links:
             norm = _norm_link(link)
             linked_to.add(norm)
-            if norm and norm not in index and len(broken) < 10:
-                broken.append({"in": rel, "link": link})
+            if norm and norm not in index and len(wanted) < 10:
+                wanted.append({"in": rel, "link": link})
     orphans = [p for s, p in note_paths.items() if s not in linked_to and s not in has_outbound]
     return {
         "notes_scanned": count,
         "capped": count >= _MAX_FILES_SCANNED,
         "orphans": {"count": len(orphans), "sample": sorted(orphans)[:10]},
-        "broken_links": {"count": len(broken), "sample": broken},
+        "wanted_notes": {"count": len(wanted), "sample": wanted},
         "missing_frontmatter": {"count": len(missing_fm), "sample": missing_fm},
     }
 

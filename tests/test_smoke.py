@@ -346,7 +346,7 @@ def test_mcp_vault_ops_update_note_guarded_edit(tmp_path, monkeypatch):
 
 def test_mcp_vault_ops_validate_and_backlinks_and_health(tmp_path, monkeypatch):
     """validate_note flags a missing preamble + unresolved wikilink; backlinks
-    finds the referencing note; vault_health reports the broken link."""
+    finds the referencing note; vault_health reports the wanted note."""
     vault_ops = _load_vault_ops()
     vault = tmp_path / "vault"
     vault.mkdir()
@@ -371,7 +371,7 @@ def test_mcp_vault_ops_validate_and_backlinks_and_health(tmp_path, monkeypatch):
     assert "Home.md" in bl["backlinks"]
 
     health = vault_ops.vault_health()
-    assert any(b["link"] == "Ghost Note" for b in health["broken_links"]["sample"])
+    assert any(b["link"] == "Ghost Note" for b in health["wanted_notes"]["sample"])
 
 
 def test_mcp_vault_ops_skips_claude_dir(tmp_path, monkeypatch):

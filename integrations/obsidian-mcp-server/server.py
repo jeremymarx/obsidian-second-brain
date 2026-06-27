@@ -112,8 +112,8 @@ def obsidian_vault_health() -> str:
     """Bounded structural health check of the vault.
 
     Returns counts plus capped samples of orphan notes (no links in or out),
-    broken wikilinks (missing target), and notes with no frontmatter. Use to
-    decide what needs curating.
+    wanted notes (a link exists but its target note does not yet - a wishlist,
+    not an error), and notes with no frontmatter. Use to decide what to curate.
     """
     return json.dumps(vault_ops.vault_health())
 
