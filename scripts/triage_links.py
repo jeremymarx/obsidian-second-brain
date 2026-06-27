@@ -18,9 +18,9 @@ from collections import Counter
 from datetime import date
 from pathlib import Path
 
-from vault_health import load_vault, check_broken_links
+from vault_health import load_vault, check_wanted_notes
 
-LINK_IN_MSG = re.compile(r"Broken link \[\[(.+?)\]\]")
+LINK_IN_MSG = re.compile(r"\[\[(.+?)\]\]")
 MODEL = "claude-haiku-4-5"
 
 PROMPT = """You triage a broken wikilink in a personal Obsidian vault written with AI help.
@@ -80,7 +80,7 @@ def load_verdicts(path):
 
 
 def apply_verdicts(vault, verdicts, create_cap):
-    broken = check_broken_links(load_vault(vault), vault)
+    broken = check_wanted_notes(load_vault(vault), vault)
     deleted, created = 0, 0
     seen_create = set()
     for iss in broken:
@@ -130,15 +130,15 @@ def main():
     if args.apply:
         verdicts = load_verdicts(args.src)
         d, c = apply_verdicts(vault, verdicts, args.create_cap)
-        after = len(check_broken_links(load_vault(vault), vault))
+        after = len(check_wanted_notes(load_vault(vault), vault))
         print(f"\nDeleted {d} junk links, created {c} stub notes.")
-        print(f"Broken links now: {after}\n")
+        print(f"Wanted notes now: {after}\n")
         return
 
     key = os.environ.get("ANTHROPIC_API_KEY")
     if not key:
         raise SystemExit("set ANTHROPIC_API_KEY")
-    broken = check_broken_links(load_vault(vault), vault)
+    broken = check_wanted_notes(load_vault(vault), vault)
 
     # One verdict per DISTINCT link text. apply_verdicts keys by link text and acts on
     # every occurrence, so triaging each unique dangling link once (instead of re-asking
