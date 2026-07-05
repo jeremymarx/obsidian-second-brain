@@ -71,39 +71,53 @@ The argument is a URL, file path, or pasted text. If no argument, ask what to in
 
 6. **REWRITE the vault** - this is the critical step. Don't just create new pages. Rewrite existing ones.
 
-   Read `index.md` first to understand what already exists in the vault. Then spawn parallel subagents:
+   Read `index.md` first to understand what already exists in the vault. Then spawn parallel subagents. Include in each agent's prompt: the vault root path, the folder map from `_CLAUDE.md`, the extracted items assigned to it, and the candidate note paths already identified from `index.md`. Agents must not re-read `_CLAUDE.md`, `SKILL.md`, or `index.md`.
+
+   **Write protocol - agents never edit wiki pages directly.** Parallel agents editing the same page silently lose each other's work (blind read-modify-write). Instead, each agent appends its proposed changes to a delta file it alone owns - `raw/deltas/YYYY-MM-DD — <source-slug> — <agent-role>.md` - one entry per target note, in this format. (If these agents run sequentially rather than in parallel - e.g. on a platform without subagents - skip the delta files and edit pages directly: the write protocol exists only to keep parallel writers safe.)
+
+   ```
+   ## target: <existing note path, or NEW: <proposed path>>
+   action: rewrite-section | append-section | create | flag-contradiction
+   section: <heading name - only for the two section actions>
+   ---
+   <the full proposed markdown for that section or page>
+   ```
 
    - **Entities agent**: for each person/company/tool mentioned:
      - Search `wiki/entities/` for existing page
-     - If found: REWRITE the page - merge new info with old, update role/context/interactions, add new links. Don't just append - integrate.
-     - If not found: create new entity page with full context
-   
+     - If found: propose a rewrite as a delta entry - merge new info with old, update role/context/interactions, add new links. Don't just append - integrate.
+     - If not found: propose a new entity page (action: create) with full context
+
    - **Concepts agent**: for each idea/framework/methodology:
      - Search `wiki/concepts/` for existing or related pages
-     - If found: REWRITE - update the concept with new evidence, new examples, new connections. If the new source adds depth, rewrite the whole section.
-     - If not found: create new concept page
-     - If the ingest reveals a PATTERN across multiple existing concepts: create a new synthesis page that connects them (e.g., "Three sources now mention X - this is a trend, not a one-off")
-   
+     - If found: propose a rewrite as a delta entry - update the concept with new evidence, new examples, new connections. If the new source adds depth, rewrite the whole section.
+     - If not found: propose a new concept page (action: create)
+     - If the ingest reveals a PATTERN across multiple existing concepts: propose a new synthesis page that connects them (e.g., "Three sources now mention X - this is a trend, not a one-off")
+
    - **Projects agent**: for each project referenced:
      - Search `wiki/projects/` for matching project
-     - If found: update with new findings, add to Recent Activity, update Key Decisions if the source contains relevant decisions
-   
+     - If found: propose delta entries updating it with new findings, Recent Activity, and Key Decisions if the source contains relevant decisions
+
    - **Contradictions agent**: for each claim in the new source:
      - Search the vault for CONFLICTING claims in existing pages
-     - If contradiction found: UPDATE the existing page to note the conflict, add the new evidence, and mark which claim is more recent/authoritative
-     - If the new source SUPERSEDES old info: rewrite the old page with updated info and note what changed and why in the page's history section
+     - If contradiction found: add a `flag-contradiction` delta entry for that page with the conflicting claim, the new evidence, and which claim is more recent/authoritative
+     - If the new source SUPERSEDES old info: propose the rewrite as a delta entry, noting what changed and why for the page's history section
 
-7. Update structural files:
+7. **Merge pass - the only step that edits wiki pages, always serial.** After all agents return, read the delta files and group entries by target note. For each target note: read it once, apply every delta entry for it in ONE rewrite, reconciling overlapping proposals side by side (contradiction flags get resolved here, where both versions are visible). Immediately after writing each note, mark its delta entries applied (add `applied: true` under the action line) so an interrupted merge never applies an entry twice. Delete each delta file once all its entries are applied.
+
+   **Batch ingest:** when running several `/obsidian-ingest` calls in parallel (one per source), run each ingest through step 6 only (delta files, no merge), then run ONE merge pass over all delta files together, then steps 8-10 once for the whole batch. Never run two merge passes at once.
+
+8. Update structural files:
    - REBUILD `index.md` - don't just append. Regenerate the sections that changed so descriptions stay current with the rewritten pages.
    - Append to the operation log: if `Logs/` exists write `**HH:MM** - ingest | Source Title (type) - X created, Y rewritten, Z contradictions resolved` to `Logs/YYYY-MM-DD.md`; otherwise append `## [YYYY-MM-DD] ingest | Source Title (type) — X created, Y rewritten, Z contradictions resolved` to `log.md`
 
-8. Update today's daily note with:
+9. Update today's daily note with:
    - What was ingested
    - What pages were REWRITTEN (not just created - this is the important part)
    - Any contradictions found and how they were resolved
    - Any new synthesis pages created from emerging patterns
 
-9. Report back:
+10. Report back:
    - Source title and type
    - **New pages created** (list)
    - **Existing pages rewritten** (list with what changed)
