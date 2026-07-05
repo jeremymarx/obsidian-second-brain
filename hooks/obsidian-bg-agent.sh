@@ -98,7 +98,7 @@ rm -f "$PROMPT_FILE"
 # Run headless agent in vault directory - async, logs to /tmp for debugging
 (
   cd "$VAULT" && \
-  claude --dangerously-skip-permissions -p "$PROMPT" >> /tmp/obsidian-bg-agent.log 2>&1
+  claude --model "${OBSIDIAN_BG_AGENT_MODEL:-haiku}" --strict-mcp-config --mcp-config '{"mcpServers":{}}' --dangerously-skip-permissions -p "$PROMPT" >> /tmp/obsidian-bg-agent.log 2>&1
 ) &
 
 exit 0
