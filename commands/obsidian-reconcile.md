@@ -12,6 +12,7 @@ The optional argument is a topic or entity to focus on. If not provided, scan th
 2. Read `index.md` to understand the full vault landscape
 
 3. Spawn parallel subagents to find contradictions:
+   Include in each agent's prompt: the vault root path, the folder map from `_CLAUDE.md`, the topic argument if one was given, and the note paths already identified. Agents must not re-read `_CLAUDE.md`, `SKILL.md`, or `index.md` - everything they need is in their prompt.
    - **Claims agent**: scan `wiki/concepts/` and `wiki/projects/` for factual claims - find pairs that contradict each other
    - **Entity agent**: scan `wiki/entities/` for outdated roles, companies, or descriptions that conflict with newer sources
    - **Decisions agent**: scan `wiki/decisions/` and project Key Decisions for reversed or superseded decisions that were never updated
