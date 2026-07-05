@@ -8,12 +8,11 @@ Use the obsidian-second-brain skill. Execute `/obsidian-save`:
 
 1. Read `_CLAUDE.md` first if it exists in the vault root
 2. Scan the entire conversation and identify all vault-worthy items: decisions, tasks, people mentioned, projects started, ideas, learnings, deals, mentions/shoutouts, AND content-worthy items (hooks, data points, swipe-file material, research findings)
-3. Group items by type: people, projects, tasks, decisions, ideas, deals, content
+3. Group items by type: people, projects (decisions ride with their project), tasks, ideas, deals, content
 4. Spawn parallel subagents - one per group - so all note types are handled simultaneously:
    - **People agent**: search for each person, create or update notes, log interactions
-   - **Projects agent**: search for each project, create or update notes. If the conversation was a substantial dev/work session (code written, problems solved, decisions made on a project), also write a dev-log note for it - the same artifact `/obsidian-log` produces - to the logs folder (resolved per `references/folder-map.md`: wiki-style `wiki/logs/`, Obsidian-style `Dev Logs/`), named `YYYY-MM-DD - Project Name.md`, and link it from the project's Recent Activity and today's daily note. This is why `/obsidian-save` absorbs `/obsidian-log`: a full save already captures the work, so you do not need to run both. If a dev-log for this project and date already exists, update it rather than creating a second.
+   - **Projects agent**: search for each project, create or update notes. If the conversation was a substantial dev/work session (code written, problems solved, decisions made on a project), also write a dev-log note for it - the same artifact `/obsidian-log` produces - to the logs folder (resolved per `references/folder-map.md`: wiki-style `wiki/logs/`, Obsidian-style `Dev Logs/`), named `YYYY-MM-DD - Project Name.md`, and link it from the project's Recent Activity (step 5 links it from today's daily note - agents never write the daily note). This is why `/obsidian-save` absorbs `/obsidian-log`: a full save already captures the work, so you do not need to run both. If a dev-log for this project and date already exists, update it rather than creating a second. This agent also owns every project note's Key Decisions section: append any decisions from the conversation to the matching project's Key Decisions - decisions and project updates must come from one agent, or two agents rewrite the same note in parallel.
    - **Tasks agent**: parse tasks, add to the right kanban columns
-   - **Decisions agent**: find relevant project notes, append to Key Decisions sections
    - **Ideas agent**: search Ideas/ for related notes, create or append
    - **Content agent** (if a `social-media/` folder exists in the vault): scan for content-worthy items and route them:
      - **Hooks, angles, contrarian takes** → append to `social-media/ideas.md` (dated bullet)
