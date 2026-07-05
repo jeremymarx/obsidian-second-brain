@@ -8,6 +8,7 @@ Use the obsidian-second-brain skill. Execute `/obsidian-init`:
 
 1. Glob the vault (`<vault>/**/*.md`) to map the full vault structure
 2. Spawn parallel subagents to discover vault context simultaneously:
+   Include in each agent's prompt: the vault root path and the exact file paths it should read (from the step-1 glob). Agents must not re-glob the vault.
    - **Dashboard agent**: read `Home.md` or equivalent dashboard
    - **Templates agent**: read all files in `Templates/`
    - **Boards agent**: read all files in `Boards/`

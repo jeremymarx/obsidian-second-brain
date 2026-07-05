@@ -13,6 +13,7 @@ This command can run manually or as a scheduled agent. It thinks for you.
 3. Read recent operation log: if `Logs/` exists, read the last 2-3 `Logs/YYYY-MM-DD.md` files; otherwise read `log.md` (last 20 entries)
 
 4. Scan for synthesis opportunities - spawn parallel subagents:
+   Include in each agent's prompt: the vault root path, the folder map from `_CLAUDE.md`, and the note paths from steps 1-3. Agents must not re-read `_CLAUDE.md`, `SKILL.md`, or `index.md` - everything they need is in their prompt.
 
    - **Cross-source agent**: read all sources ingested in the last 7 days (`raw/`). Find concepts that appear in 2+ unrelated sources. If the same idea shows up in a podcast transcript AND an article AND a daily note - that's a synthesis candidate.
    
