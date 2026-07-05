@@ -23,7 +23,7 @@ If the optional argument was given, filter to the matching project only.
 
 ## Step 2 - gather state in parallel
 
-Spawn one subagent per project. Each agent runs three checks:
+For projects with a local repo or docs path, spawn one subagent per project (the repo/docs checks below are why). For vault-only projects, run the vault check yourself inline - a subagent costs more than reading one note. Each project check:
 
 **Vault check:**
 - Read the project note
