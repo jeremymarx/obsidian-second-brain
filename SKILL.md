@@ -345,19 +345,7 @@ These slash commands can be used in any Claude surface. Each one is smart - it r
 
 **The master save command.** Reads the entire conversation and extracts everything worth preserving.
 
-Steps:
-1. Scan the conversation and identify all vault-worthy items: decisions, tasks, people mentioned, projects started, ideas, learnings, deals, mentions/shoutouts
-2. Group items by type: people, projects, tasks, decisions, ideas, deals
-3. Spawn parallel subagents - one per group - so all note types are handled simultaneously:
-   - **People agent**: search for each person, create or update notes, log interactions
-   - **Projects agent**: search for each project, create or update notes
-   - **Tasks agent**: parse tasks, add to the right kanban columns
-   - **Decisions agent**: find relevant project notes, append to Key Decisions sections
-   - **Ideas agent**: search Ideas/ for related notes, create or append
-4. After all agents complete: update today's daily note with links to everything saved
-5. Report back: a clean list of what was saved and where
-
-Do not ask for guidance on where to save things - infer it. Only ask if something is genuinely ambiguous (e.g. a person mentioned with no context on who they are).
+Full procedure: `commands/obsidian-save.md`
 
 ---
 
@@ -365,14 +353,7 @@ Do not ask for guidance on where to save things - infer it. Only ask if somethin
 
 **Creates or updates today's daily note.**
 
-Steps:
-1. Check if `Daily/YYYY-MM-DD.md` exists for today
-2. If not: read `Templates/Daily Note.md`, fill in date fields, create the file
-3. Scan the current conversation for anything relevant to today: tasks in progress, people mentioned, decisions made, what's being worked on
-4. Pre-fill or update the note's sections with that context
-5. If the note already exists, inject new content into the right sections rather than overwriting
-
-Return the path of the daily note when done.
+Full procedure: `commands/obsidian-daily.md`
 
 ---
 
@@ -380,12 +361,7 @@ Return the path of the daily note when done.
 
 **One calendar command with four modes.** Claude Code only (needs the Google Calendar MCP). The first word selects the mode; a bare range word defaults to `agenda`; no argument at all defaults to `agenda today`.
 
-- **`agenda [range]`** - reads the calendar and writes a re-derivable AI-first snapshot to `wiki/agenda/` (`type: agenda-snapshot`). Range: `today`, `tomorrow`, `week`, `next-week`, a date, or a range. Cross-links attendees to `[[Person]]` notes; flags conflicts, 3+ back-to-back stretches, working-hours focus blocks, and externally-organized events. Read-only on the calendar; Google Calendar stays the source of truth.
-- **`reconcile [window]`** - flags commitments the vault implies (project `next_action`s, due tasks, dated commitments in daily notes, fixed dates in `CRITICAL_FACTS.md`) that are NOT on the calendar, plus events with no vault context. Flag only - never adds or changes events.
-- **`meeting [selector]`** - turns an event (`last`, `next`, `today`, `event-id:<id>`, or fuzzy title) into a `type: meeting` note in `wiki/meetings/` with metadata pre-filled and **empty** Notes / Decisions / Action items sections (never fabricate meeting content). Cross-links attendees, backlinks any task whose `calendar-event-id` matches.
-- **`schedule <args>`** - the only mode that writes to the calendar. Standalone (`"<title>" <when> <duration>`), from a task (`task:<path>`), or suggest-a-time (`task:<...> suggest:<window>`). Resolves attendee emails from person notes (never guesses), conflict-checks before writing, requests a Meet link when participants span domains, and writes `calendar-event-id` back into the task so a re-run reschedules rather than duplicating.
-
-(Consolidated from the former `/obsidian-agenda`, `/obsidian-reconcile`-style calendar check, `/obsidian-meeting`, and `/obsidian-schedule` - same behaviors, one entry point. The natural-language triggers for all four still route here.)
+Full procedure: `commands/obsidian-calendar.md`
 
 ---
 
@@ -393,7 +369,7 @@ Return the path of the daily note when done.
 
 **Tracks a recurring obligation (payment, filing, ops) with a cadence and a computed next-due date.**
 
-State the obligation and cadence (e.g. "pay social benefits, monthly day 20"). Searches for an existing note first, then builds a `type: recurring-task` note with What / Cadence / Blockers / History sections and frontmatter (`cadence`, `owner`, `blocker`, `next-due`, optional `amount`). Adds a board card for the next occurrence; on each completion, appends a History row and advances `next-due`. Fills the gap that `/obsidian-task` (one-shot) leaves.
+Full procedure: `commands/obsidian-recurring.md`
 
 ---
 
@@ -401,13 +377,7 @@ State the obligation and cadence (e.g. "pay social benefits, monthly day 20"). S
 
 **Logs a work or dev session to the vault.**
 
-Steps:
-1. Infer the project from conversation context - search the vault if needed to find the right project note
-2. Read `Templates/Dev Log.md` (or `Templates/Work Log.md` if it exists)
-3. Fill in: date, project, what was worked on, problems encountered, decisions made, next steps - all inferred from the conversation
-4. Save to `Dev Logs/YYYY-MM-DD — Project Name.md`
-5. Inject a link into the project note's Recent Activity section
-6. Inject a link into today's daily note Work section
+Full procedure: `commands/obsidian-log.md`
 
 ---
 
@@ -415,13 +385,7 @@ Steps:
 
 **Adds a task to the vault and the right kanban board.**
 
-Steps:
-1. Parse the task from the argument or from recent conversation context if no argument given
-2. Infer: priority (🔴/🟡/🟢), due date, linked project, linked person
-3. Search for the right kanban board - use `_CLAUDE.md` board list or search `Boards/`
-4. Add the task card to the correct column (`📋 This Week` or `📥 Backlog` depending on due date)
-5. Create a task note in `Tasks/` if the task is substantial (more than a one-liner)
-6. Link the task from the relevant project note and today's daily note
+Full procedure: `commands/obsidian-task.md`
 
 ---
 
@@ -429,13 +393,7 @@ Steps:
 
 **Creates or updates a person note.**
 
-Steps:
-1. Search the vault for an existing note matching the name (fuzzy - handle typos and partial names)
-2. If found: confirm with user, then update with new info from conversation
-3. If not found: create `People/Full Name.md` with full frontmatter schema
-4. Fill in everything inferable from the conversation: role, company, context, relationship strength, last interaction date
-5. Log the interaction in today's daily note
-6. If a People index file exists, add or update the entry there
+Full procedure: `commands/obsidian-person.md`
 
 ---
 
@@ -443,12 +401,7 @@ Steps:
 
 **Quick idea capture with zero friction.**
 
-Steps:
-1. Take the argument as the idea, or pull the most recent idea/thought from the conversation
-2. Search `Ideas/` for a related existing note - if found, append to it
-3. If new: create `Ideas/Title.md` with minimal frontmatter (`date`, `tags: [idea]`)
-4. Write the idea with any supporting context from the conversation
-5. Add a brief mention in today's daily note under an Ideas or Captures section
+Full procedure: `commands/obsidian-capture.md`
 
 ---
 
@@ -456,14 +409,7 @@ Steps:
 
 **Process what the Telegram journal bot captured on the go.** The laptop-side companion to the `integrations/telegram-journal/` bot, which captures voice/text/image/PDF/link from your phone and appends each to a `catchup.md` queue in the vault.
 
-Steps:
-1. Read `catchup.md` in the vault root - each unchecked `- [ ]` line is an unprocessed capture (`date time | kind | summary | -> where`).
-2. Collect the unchecked items, applying the timeframe filter (`today` / `week` / `all`, default `all`). If none, say so and stop.
-3. Show them grouped by age (Today / This week / Older), flagging stale ones.
-4. Process WITH the user (not autonomously): open each linked note, propose **integrate** (fold into the right note per the AI-first rule) / **keep** / **discard**, confirm, then write.
-5. Check the item off (`- [x]` + processed date); never delete queue history.
-
-Pull, not push: nothing is processed until you run this, so nothing surprises you. The phone is for fast dumb capture; this is where it becomes integrated knowledge.
+Full procedure: `commands/obsidian-catchup.md`
 
 ---
 
@@ -471,14 +417,7 @@ Pull, not push: nothing is processed until you run this, so nothing surprises yo
 
 **Smart vault search.**
 
-Steps:
-1. Run `search(query="...")` with the provided query
-2. Also try variations if results are sparse (synonyms, related terms)
-3. Return results with context: note title, folder, a relevant excerpt, and what type of note it is
-4. If results are ambiguous, group them by type (people, projects, tasks, etc.)
-5. Offer to open, update, or link any of the found notes
-
-Do not just return filenames - return enough context for the user to act.
+Full procedure: `commands/obsidian-find.md`
 
 ---
 
@@ -486,13 +425,7 @@ Do not just return filenames - return enough context for the user to act.
 
 **Summarizes a time period from the vault.**
 
-Steps:
-1. Determine the date range from the argument (default: `week` if not specified)
-2. List all daily notes in the range with `list_files_in_dir("Daily/")`
-3. Spawn parallel subagents - one per daily note - to read and extract key points from each simultaneously
-4. Also spawn parallel agents to read dev logs and completed kanban tasks from the same period
-5. Synthesize all agent results: what was worked on, decisions made, people interacted with, tasks completed, ideas captured
-6. Present as a clean narrative summary - not a raw dump of note content
+Full procedure: `commands/obsidian-recap.md`
 
 ---
 
@@ -500,19 +433,7 @@ Steps:
 
 **Generates a structured weekly or monthly review note.**
 
-Steps:
-1. Ask: weekly or monthly? (or infer from context)
-2. Read daily notes and dev logs for the period
-3. Read active projects and check for status changes
-4. Read completed tasks from kanban boards
-5. Draft a review note using `Templates/Review.md` if it exists, otherwise use a standard structure:
-   - What I accomplished
-   - Key decisions made
-   - People I worked with
-   - What I learned
-   - What to carry forward
-6. Save to `Reviews/YYYY-MM-DD — Weekly Review.md` (or Monthly)
-7. Link from the last daily note of the period
+Full procedure: `commands/obsidian-review.md`
 
 ---
 
@@ -520,13 +441,7 @@ Steps:
 
 **Shows or updates a kanban board.**
 
-Steps:
-1. If a board name is given, search `Boards/` for it (fuzzy match)
-2. If no name given, list available boards and ask which one
-3. Read and display the current board state: columns, item counts, overdue items (past `@{date}`)
-4. Ask if the user wants to make updates - if yes, infer changes from conversation context
-5. Move completed items to ✅ Done with strikethrough, add new items in the right column
-6. Flag any items that are overdue or have been in the same column for more than a week
+Full procedure: `commands/obsidian-board.md`
 
 ---
 
@@ -534,12 +449,7 @@ Steps:
 
 **Bulk-triages a kanban board whose columns have gone stale.** Where `/obsidian-board` only flags overdue items, this clears them.
 
-Steps:
-1. Read `_CLAUDE.md` for the boards folder and kanban convention (columns, `@{date}` format)
-2. Read the target board (fuzzy-match; if none given, list boards and ask), parse every open item, compute age vs today
-3. Group items into overdue (`@{date}` past), stale (older than N days, default 14), and undated; show counts per column so the bloat is visible
-4. Propose ONE verdict per stale/overdue item with a one-line reason - done / reschedule / archive / keep - as a batch the user approves, edits, or overrides
-5. Apply approved verdicts in place (additive moves + strikethrough, never silent deletion), then report what moved and log it
+Full procedure: `commands/obsidian-board-hygiene.md`
 
 ---
 
@@ -547,13 +457,7 @@ Steps:
 
 **Creates or updates a project note.**
 
-Steps:
-1. Search the vault for an existing project matching the name (fuzzy - handle typos)
-2. If found: show what was found, confirm, then update with new info from conversation
-3. If not found: create `Projects/Project Name.md` with full frontmatter schema (`date`, `tags: [project]`, `status: active`, `job`)
-4. Fill in everything inferable from the conversation: description, goals, key people, current status
-5. Add a card to the relevant kanban board in the `📥 Backlog` or `🔨 In Progress` column
-6. Link from today's daily note
+Full procedure: `commands/obsidian-project.md`
 
 ---
 
@@ -561,9 +465,7 @@ Steps:
 
 **Live status overview across all tracked projects.**
 
-Reads `_CLAUDE.md` for the projects folder, then scans it for notes with `type: project` or a `repo:` field. For each project, spawns a parallel subagent that runs three checks: reads the vault note (status, last activity, next action, blockers), runs `git log` and `git status` if a `repo:` path is set, and looks for `NOTES.md` / `TODO.md` in the repo root. Merges the three into one status block (active / stalled / idle / blocked / archived inferred from activity recency), prints the full overview to the conversation ordered active-first, then injects a `## Last overview` section into each project note.
-
-If a project name argument is given, shows deep context for that one project only.
+Full procedure: `commands/obsidian-projects.md`
 
 ---
 
@@ -571,26 +473,7 @@ If a project name argument is given, shows deep context for that one project onl
 
 **Runs a vault health check and summarizes findings.**
 
-Steps:
-1. Run: `python scripts/vault_health.py --path ~/path/to/vault --json`
-2. Parse the JSON output and split findings into categories
-3. Spawn parallel subagents to handle each category simultaneously:
-   - **Links agent**: verify broken links, attempt to resolve them
-   - **Duplicates agent**: confirm duplicates are truly the same concept, not just similar names
-   - **Frontmatter agent**: identify notes missing required fields by type
-   - **Staleness agent**: check overdue tasks and unfilled template syntax
-   - **Orphans agent**: check orphaned notes and empty folders
-   - **Contradictions agent**: scan Key Decisions and Knowledge/ for claims that conflict or are superseded
-   - **Concept gaps agent**: find terms mentioned 3+ times without a dedicated page
-   - **Stale claims agent**: flag Knowledge/ notes older than 6 months on fast-moving topics
-4. Merge agent results and group by severity:
-   - 🔴 Critical: broken links, unfilled template syntax, contradictions
-   - 🟡 Warning: duplicates, stale tasks, missing frontmatter, stale claims, concept gaps
-   - ⚪ Info: orphaned notes, empty folders
-5. Present a clean summary with counts per category
-6. For safe fixes (missing frontmatter, obvious duplicates, creating pages for concept gaps), offer to fix them automatically
-7. For destructive fixes (archiving, merging, resolving contradictions), list them and ask for explicit confirmation before touching anything
-8. Append to `log.md` with severity counts
+Full procedure: `commands/obsidian-health.md`
 
 ---
 
@@ -598,7 +481,7 @@ Steps:
 
 **Measures how well vault search actually finds the right note - so improving retrieval is a number, not a hunch.**
 
-Hybrid command backed by `scripts/eval/retrieval_eval.py`, which reuses the REAL search engine (`integrations/obsidian-mcp-server/vault_ops.py`, the term-frequency, title-weighted ranking behind `/obsidian-find` and the MCP connector). It bootstraps its own eval set from the vault (an LLM writes a question per sampled note, avoiding the note's title words so it tests retrieval not string-match; the note is the gold answer), then scores recall@1/3/5/10 and MRR and lists the failures - misses and notes buried below #3, naming which note wrongly ranked #1. Claude interprets the numbers, turns failures into ranked retrieval fixes (each a hypothesis to re-measure on the same cases), and optionally writes an AI-first baseline note. Generated cases hold private note paths and are gitignored. The first run on a 1,000+ note vault scored **0% recall@10** on paraphrased questions (long `raw/` transcripts and `log.md` dominate term-frequency ranking) - proving the cheap structural fixes (exclude `raw/`, weight by `type:`) should be measured before reaching for a vector index.
+Full procedure: `commands/obsidian-retrieval-eval.md`
 
 ---
 
@@ -606,19 +489,7 @@ Hybrid command backed by `scripts/eval/retrieval_eval.py`, which reuses the REAL
 
 **Finds and resolves contradictions across the vault.**
 
-Steps:
-1. Read `index.md` to understand the full vault landscape
-2. Spawn parallel subagents to find contradictions:
-   - **Claims agent**: scan `wiki/concepts/` and `wiki/projects/` for conflicting factual claims
-   - **Entity agent**: scan `wiki/entities/` for outdated roles, companies, or descriptions
-   - **Decisions agent**: scan `wiki/decisions/` for reversed or superseded decisions never updated
-   - **Source freshness agent**: compare `raw/` dates against `wiki/` pages for stale references
-3. For each contradiction, evaluate: which is newer, which is more authoritative, is it a genuine conflict or an evolution
-4. Resolve:
-   - **Clear winner**: rewrite the outdated page, add a History section noting what changed
-   - **Ambiguous**: create `wiki/decisions/Conflict — Topic.md` with both sides, mark `status: open`
-   - **Evolution**: update the page to current state with historical context
-5. Rebuild affected `index.md` sections, append to `log.md`, update daily note
+Full procedure: `commands/obsidian-reconcile.md`
 
 ---
 
@@ -626,18 +497,7 @@ Steps:
 
 **Automatic synthesis - the vault thinks for itself.**
 
-Can run manually or as a scheduled agent. Scans the vault for patterns nobody asked about.
-
-Steps:
-1. Read `index.md` and `log.md` (last 20 entries) for recent activity
-2. Spawn parallel subagents:
-   - **Cross-source agent**: find concepts appearing in 2+ unrelated sources from the last 7 days
-   - **Entity convergence agent**: find people who appear together in multiple contexts but have no connection page
-   - **Concept evolution agent**: find concepts updated 3+ times and document how thinking changed
-   - **Orphan rescue agent**: find unlinked notes that should be connected to existing pages
-3. For each pattern: create `wiki/concepts/Synthesis — Title.md` with evidence, interpretation, and suggested action
-4. Link synthesis pages FROM all source notes they reference
-5. Update `index.md`, `log.md`, and today's daily note
+Full procedure: `commands/obsidian-synthesize.md`
 
 ---
 
@@ -645,12 +505,7 @@ Steps:
 
 **Export a clean snapshot any agent or tool can consume.**
 
-Steps:
-1. Scan all notes in `wiki/` and extract: path, title, type, date, status, summary, links, tags, frontmatter
-2. Output as JSON (default) to `_export/vault-snapshot.json` or markdown to `_export/vault-snapshot.md`
-3. The snapshot is a flat, structured representation of the vault - no folder structure knowledge needed
-4. Any AI tool, automation, or agent can read this file and understand the vault
-5. Append to `log.md`
+Full procedure: `commands/obsidian-export.md`
 
 ---
 
@@ -658,19 +513,7 @@ Steps:
 
 **Bootstraps `_CLAUDE.md` for the vault - the operating manual.**
 
-Steps:
-1. Glob the vault (`<vault>/**/*.md`) to map the full structure
-2. Spawn parallel subagents to discover vault context simultaneously:
-   - **Dashboard agent**: read `Home.md` or equivalent dashboard
-   - **Templates agent**: read all files in `Templates/`
-   - **Boards agent**: read all files in `Boards/`
-   - **Samples agent**: read one existing note per major folder to capture naming conventions and frontmatter patterns
-3. Merge all agent results into a complete picture of the vault
-4. Generate a complete `_CLAUDE.md` using the template in `references/claude-md-template.md`, filled with real values from the vault
-5. Write it to `_CLAUDE.md` at the vault root (Write tool, or `obsidian_save_note` if using the bundled MCP server)
-6. Confirm what was written and tell the user to restart their Claude session so the new file takes effect
-
-If `_CLAUDE.md` already exists: show a diff of what would change and ask before overwriting.
+Full procedure: `commands/obsidian-init.md`
 
 ---
 
@@ -678,7 +521,7 @@ If `_CLAUDE.md` already exists: show a diff of what would change and ask before 
 
 **Scans a codebase and writes a maintained set of architecture notes into the vault - overview, per-module notes, key decisions. Re-runnable.**
 
-Hybrid command: `scripts/architect_scan.py` does a deterministic scan (stack, modules, dependencies, entry points, git commit) and emits JSON; Claude synthesizes the prose, rationale, a Mermaid diagram, and likely personas, then writes AI-first notes under `Projects/<name>/Architecture/` (`type: architecture-overview` + `type: architecture-module`). Pulls decision candidates from `scripts/mine_commit_decisions.py`. Refresh is the same command re-run: it uses sentinel markers (`<!-- @generated -->` / `<!-- @user -->`, see `references/write-rules.md`) so re-running updates only the generated blocks and never clobbers your hand-edits. For builders who want their code projects documented in the same brain as their ideas and decisions.
+Full procedure: `commands/obsidian-architect.md`
 
 ---
 
@@ -686,7 +529,7 @@ Hybrid command: `scripts/architect_scan.py` does a deterministic scan (stack, mo
 
 **Generates a JSON Canvas map of the vault's knowledge graph, openable in Obsidian's native canvas viewer.**
 
-Backed by `scripts/link_graph.py` (deterministic link extraction - no whole-vault read). Optional scope: a project, entity, topic, or `full` (default). Builds nodes and edges from `[[wikilinks]]`, clusters by type (entities, projects, concepts, daily, sources) with color and size keyed to centrality, flags orphans with a red border, and writes `atlas.canvas` (or `atlas-<topic>.canvas`) to the vault root. Also emits a text summary: hub nodes by degree centrality, bridge nodes, stale orphans, clusters, and any centrality skew (a single navigation point of failure). Appends a one-line entry to the operation log.
+Full procedure: `commands/obsidian-visualize.md`
 
 ---
 
@@ -694,7 +537,7 @@ Backed by `scripts/link_graph.py` (deterministic link extraction - no whole-vaul
 
 **Scaffolds a new obsidian-second-brain command through a short interview - no markdown or frontmatter editing.**
 
-A guided conversation (intent, name, category, trigger phrases, behavior steps, AI-first compliance, external APIs) writes a fully-formed `commands/<name>.md` that the build pipeline picks up on the next `bash scripts/build.sh`, flowing into all six platform builds. The optional seed pre-fills suggestions. Every command created this way lands AI-first-compliant by construction. (This is the command that creates commands; it does not run on itself.)
+Full procedure: `commands/create-command.md`
 
 ---
 
@@ -702,22 +545,7 @@ A guided conversation (intent, name, category, trigger phrases, behavior steps, 
 
 **Ingests a source into the vault - one source touches many pages.**
 
-Steps:
-1. Accept a URL, file path, or pasted text as the source
-2. Classify the source type before full read: article, PDF, transcript, video, or raw text
-3. Read or fetch the full source content
-4. Extract: entities (people, companies, tools), concepts, claims, action items, notable quotes
-5. Save the raw source to `Knowledge/YYYY-MM-DD — Source Title.md` with full summary and source link
-6. Spawn parallel subagents to distribute knowledge across the vault:
-   - **People agent**: create or update People/ notes for each person mentioned
-   - **Projects agent**: update existing project notes with new findings
-   - **Ideas agent**: create or append to Ideas/ for new concepts
-   - **Knowledge agent**: create or update Knowledge/ notes for factual claims and frameworks
-7. Update `index.md` with all newly created notes
-8. Append to `log.md`: `## [YYYY-MM-DD] ingest | Source Title (type) — X created, Y updated`
-9. Update today's daily note with an ingest summary
-
-A single ingest should touch 5-15 files. Compile knowledge once, distribute everywhere.
+Full procedure: `commands/obsidian-ingest.md`
 
 ---
 
@@ -731,21 +559,7 @@ These commands use the vault as a thinking partner - not just storage. They surf
 
 **Red-teams your current idea against your own vault history.**
 
-Steps:
-1. Identify the user's current claim, plan, or assumption - from the argument or conversation context
-2. Extract the key premises behind that position
-3. Spawn parallel subagents to search for counter-evidence:
-   - **Decisions agent**: search Key Decisions sections for past decisions that contradicted similar thinking
-   - **Failures agent**: search dev logs, daily notes, and archives for past failures or lessons related to this topic
-   - **Contradictions agent**: search for notes where the user held the opposite position or flagged risks
-4. Synthesize a structured "Red Team" analysis:
-   - **Your position**: restate the claim
-   - **Counter-evidence from your vault**: cite specific notes, dates, and quotes
-   - **Blind spots**: what the user might be ignoring based on their own history
-   - **Verdict**: consistent with past experience, or does the vault suggest caution?
-5. Log the challenge in today's daily note under a Thinking section
-
-Do not be agreeable. The entire point is to pressure-test. Cite specific vault files.
+Full procedure: `commands/obsidian-challenge.md`
 
 ---
 
@@ -753,23 +567,7 @@ Do not be agreeable. The entire point is to pressure-test. Cite specific vault f
 
 **Surfaces unnamed patterns from recent notes - recurring themes and conclusions you haven't explicitly stated.**
 
-Steps:
-1. Determine the date range from the argument (default: last 30 days)
-2. Spawn parallel subagents to scan vault content:
-   - **Daily notes agent**: extract recurring topics, complaints, observations, energy patterns
-   - **Dev logs agent**: extract repeated blockers, tools, architectural patterns
-   - **Decisions agent**: look for directional trends across project notes
-   - **Ideas agent**: look for thematic clusters in Ideas/ notes
-3. Identify:
-   - **Recurring themes**: topics that appeared 3+ times without being named as a priority
-   - **Emotional patterns**: what energizes vs. drains (based on language)
-   - **Unnamed conclusions**: things the notes imply but never state outright
-   - **Emerging directions**: where the vault suggests the user is heading
-4. Present a "Pattern Report" - each pattern with evidence (cited notes), interpretation, and suggested action
-5. Offer to save the report to `Ideas/` or a relevant project note
-6. Log a summary in today's daily note
-
-The goal is insight the user cannot see themselves. Surface what they haven't named yet.
+Full procedure: `commands/obsidian-emerge.md`
 
 ---
 
@@ -777,22 +575,7 @@ The goal is insight the user cannot see themselves. Surface what they haven't na
 
 **Bridges two unrelated domains using the vault's link graph to spark new ideas.**
 
-Steps:
-1. Parse two domains from arguments (e.g., `/obsidian-connect "distributed systems" "cooking"`)
-2. For each domain, search the vault: find all related notes, map backlinks and outgoing links to build a local cluster
-3. Find the bridge:
-   - Shared links, tags, or people between the two clusters
-   - If a direct path exists in the link graph, trace it and explain each hop
-   - If no direct path, find the closest semantic overlap
-4. Generate creative connections:
-   - **Structural analogy**: how a pattern in A maps to B
-   - **Transfer opportunities**: what works in A that could apply to B
-   - **Collision ideas**: new concepts that only exist at the intersection
-5. Present 3-5 specific, actionable connections - not vague analogies but concrete ideas
-6. Offer to save the best connections to `Ideas/` with links to both source domains
-7. Log the connection exercise in today's daily note
-
-The value is in unexpected links. If the connection is obvious, dig deeper.
+Full procedure: `commands/obsidian-connect.md`
 
 ---
 
@@ -800,22 +583,7 @@ The value is in unexpected links. If the connection is obvious, dig deeper.
 
 **Promotes an idea fragment into a full project spec with tasks, board entries, and structure.**
 
-Steps:
-1. If argument given: search `Ideas/`, daily notes, and captures for a matching idea (fuzzy)
-2. If no argument: list recent ideas (last 14 days) and ask the user to pick one
-3. Read the full idea note and any linked notes for context
-4. Research the vault for related content: overlapping projects, related people, past decisions, similar ideas explored before
-5. Generate a full project spec:
-   - **Project note** in `Projects/` with complete frontmatter (status: planning, linked idea)
-   - **Goals**: 3-5 concrete outcomes
-   - **Key tasks**: broken into phases with priorities
-   - **Open questions**: what still needs answering
-   - **Related notes**: links to everything relevant
-6. Add cards to the relevant kanban board
-7. Update the original idea note: add `status: graduated` and link to the new project
-8. Link the new project from today's daily note
-
-The idea doesn't die - it evolves. The original note stays as the origin story.
+Full procedure: `commands/obsidian-graduate.md`
 
 ---
 
@@ -823,7 +591,7 @@ The idea doesn't die - it evolves. The original note stays as the origin story.
 
 **Convenes a panel of distinct perspectives on a decision - one independent verdict per lens, then a synthesis.**
 
-A multi-persona complement to `/obsidian-challenge` (which red-teams from one stance). Uses the vault's `Advisors/` persona notes as panelists if they exist, otherwise four generic lenses (skeptic, user, operator, long-game). Each panelist argues independently before the synthesis; the disagreement is the point and is never hidden. Saves a `type: synthesis` note to `wiki/concepts/`.
+Full procedure: `commands/obsidian-panel.md`
 
 ---
 
@@ -831,7 +599,7 @@ A multi-persona complement to `/obsidian-challenge` (which red-teams from one st
 
 **Cross-references everything the vault knows about one topic: agreements, contradictions, stale claims, coverage gaps.**
 
-Topic-driven (unlike `/obsidian-synthesize`, which scans the whole vault unprompted). Pure vault, no network. Greps and reads every note touching the topic, then consolidates into what the vault agrees on, where notes contradict (surfaced, not resolved - that is `/obsidian-reconcile`), what looks stale, and what is missing. Saves a `type: synthesis` note; never modifies the sources.
+Full procedure: `commands/vault-deep-synthesis.md`
 
 ---
 
@@ -839,7 +607,7 @@ Topic-driven (unlike `/obsidian-synthesize`, which scans the whole vault unpromp
 
 **Condenses one source into key claims, each tagged with provenance back to the exact block it came from.** A distillation, not a summary: condensed enough to read fast, anchored enough to audit.
 
-Segments the source into numbered, citable blocks (`B1`, `B2`, ...), extracts the key claims, and tags each claim with the block(s) it came from (`(src: B3)`). A claim with no traceable source does not make the cut - and gets reported as dropped, never silently cut. Inferences the source implies but never states go in a separate labelled section so distilled fact and reasoning never blur. Saves a `type: distillation` note (with the verbatim `source` and the numbered source blocks at the bottom), links it from the original. This is the trust primitive for a vault more than one person reads - the differentiator behind the team-vault direction. Pairs with `/obsidian-ingest` (brings the source in) and `/vault-deep-synthesis` (cross-references many notes).
+Full procedure: `commands/obsidian-distill.md`
 
 ---
 
@@ -847,7 +615,7 @@ Segments the source into numbered, citable blocks (`B1`, `B2`, ...), extracts th
 
 **Ranks 3-5 next-direction candidates from ungraduated ideas, open project questions, and orphan research.**
 
-Answers "what is worth doing next" from vault material. Distinct from `/obsidian-emerge` (names unstated patterns) and `/obsidian-graduate` (promotes one chosen idea). Ranks candidates by a stated heuristic (recency, pull, momentum) and gives the smallest next step for each. Does not auto-graduate.
+Full procedure: `commands/idea-discovery.md`
 
 ---
 
@@ -855,7 +623,7 @@ Answers "what is worth doing next" from vault material. Distinct from `/obsidian
 
 **Reviews the lessons scattered across the vault and turns them into a living rulebook.**
 
-Scans daily notes, dev logs, ADRs, and auto-generated pattern reports for lessons, mistakes, and wins, then classifies each as active, stale, superseded, or a promotion candidate (appeared 3+ times - worth becoming a permanent rule in `_CLAUDE.md`). Default scope is the last 30 days (`all` for the whole vault, or a named topic). Writes a Learnings Review to `wiki/concepts/YYYY-MM-DD — Learnings Review.md` and offers to promote candidates or archive stale lessons with confirmation. Lessons that are not reviewed do not compound.
+Full procedure: `commands/obsidian-learn.md`
 
 ---
 
@@ -865,25 +633,7 @@ Scans daily notes, dev logs, ADRs, and auto-generated pattern reports for lesson
 
 **Loads your identity, values, priorities, and current state in one shot - with progressive context levels.**
 
-Uses token budgets to avoid loading the entire vault. Start light, go deeper only as needed.
-
-Steps:
-1. **L0 - Identity (~200 tokens)**: read `SOUL.md`/`About Me.md` and `CORE_VALUES.md`/`Values.md`
-2. **L1 - Navigation (~1-2K tokens)**: read `index.md` (vault catalog) and `log.md` (last 10 entries)
-3. **L2 - Current State (~2-5K tokens)**: read `Home.md`/`Dashboard.md`, today's daily note, last 3 daily notes, active kanban boards, previous session digests
-4. **L3 - Deep Context (on demand, ~5-20K tokens)**: only load if needed - active project notes, full Knowledge/ articles, recently mentioned people
-
-Present a brief status after L0-L2 (do NOT load L3 unless needed):
-- **Who I am to you**: persona and communication style
-- **Your current priorities**: top 3-5 active threads (from index.md + boards)
-- **Open threads from last session**: anything unfinished (from log.md + daily notes)
-- **Overdue / needs attention**: stale tasks or projects
-- **Today so far**: what's already logged
-
-Keep output concise - this is a boot-up sequence, not a report.
-
-If identity files don't exist, offer to create them by asking 5-7 quick questions about the user's role, values, and preferences.
-If `index.md` doesn't exist, offer to run `/obsidian-init` to generate it.
+Full procedure: `commands/obsidian-world.md`
 
 ---
 
@@ -891,9 +641,7 @@ If `index.md` doesn't exist, offer to run `/obsidian-init` to generate it.
 
 **Records decisions at two depths.** Default mode captures the decisions made in a conversation as dated one-liners appended to the relevant project notes' `## Key Decisions` sections (and the daily note) - for the steady stream of choices made while working. `--formal` (or leading with `adr`) instead writes one full Architecture Decision Record - Decision / Context / Options Considered / Rationale / Consequences / Related - to the decisions folder (resolved per `references/folder-map.md`: wiki-style `wiki/decisions/`, Obsidian-style `Knowledge/`), links it from the project's Key Decisions and `index.md`, and logs it. Use the formal mode for a structural or directional decision worth a real writeup; `python scripts/mine_commit_decisions.py` surfaces decision-shaped commits as ADR candidates.
 
-The vault knows why it's structured the way it is - when a future session asks "why?", the formal record answers. `/obsidian-graduate`, `/obsidian-health` structural fixes, and folder reorganizations may offer to write a formal record; they offer, they don't force.
-
-(Consolidated: the former standalone `/obsidian-adr` is now `/obsidian-decide --formal`; its triggers still route here.)
+Full procedure: `commands/obsidian-decide.md`
 
 ---
 
@@ -911,13 +659,7 @@ Seven commands that pull external knowledge into the vault - X posts, X discours
 
 **Deep-read an X post** via Grok + Live Search. Verbatim post + thread + TL;DR + key claims + reply sentiment + voices to watch.
 
-Steps:
-1. Validate the URL contains `x.com/` or `twitter.com/`
-2. Run `uv run -m scripts.research.x_read "<url>"` from the repo root
-3. Show the structured analysis verbatim to the user
-4. **Default save: chat only.** If the user asks "save this", write an AI-first note to `Research/X-reads/`
-
-Plain English triggers: "read this tweet", "analyze this X post", "what's in this tweet".
+Full procedure: `commands/x-read.md`
 
 ---
 
@@ -925,14 +667,7 @@ Plain English triggers: "read this tweet", "analyze this X post", "what's in thi
 
 **Scan X for what's trending** in a topic. Themes (with rep posts + voices), gaps, hooks working, voice/tone, post ideas.
 
-Steps:
-1. Resolve the topic (multi-word fine)
-2. Run `uv run -m scripts.research.x_pulse "<topic>"`
-3. Show the pulse output verbatim
-4. **Default save: auto-saves** to `Research/X-pulse/YYYY-MM-DD — <slug>.md` (AI-first format)
-5. Append one-line entry to `log.md`
-
-Plain English: "what's hot on X about AI", "X pulse on vibe coding", "what should I post today on AI automation".
+Full procedure: `commands/x-pulse.md`
 
 ---
 
@@ -940,14 +675,7 @@ Plain English: "what's hot on X about AI", "X pulse on vibe coding", "what shoul
 
 **Web research with citations** via Perplexity Sonar Pro. Deep dossier: summary, key facts (with recency markers), timeline, key players, contrarian views, further reading, open questions.
 
-Steps:
-1. Resolve the topic
-2. Run `uv run -m scripts.research.research "<topic>"`
-3. Show the dossier verbatim, including citations
-4. **Default save: auto-saves** to `Research/Web/YYYY-MM-DD — <slug>.md`
-5. All citations stored in frontmatter for later Dataview queries
-
-Plain English: "research X", "look up X", "find me info on X". Note: "do deep research" routes to `/research-deep` instead.
+Full procedure: `commands/research.md`
 
 ---
 
@@ -955,23 +683,7 @@ Plain English: "research X", "look up X", "find me info on X". Note: "do deep re
 
 **Vault-first deep research with cross-vault propagation.** The chain-everything command.
 
-Steps (4 phases):
-1. **Vault scan** - find existing notes mentioning the topic (the baseline)
-2. **Gap analysis** - Perplexity sonar-pro identifies what's missing/stale, emits 3-5 targeted queries
-3. **Gap-fill** - runs each query via Perplexity (web) or Grok+Live Search (X)
-4. **Synthesis** - Perplexity sonar-deep-research produces a delta report (what's new, what's confirmed, contradictions, recommended vault updates, open questions)
-
-Then:
-- Writes synthesis to `Research/Deep/YYYY-MM-DD — <slug>.md`
-- Emits a JSON propagation payload between `<<<RESEARCH_DEEP_PROPAGATION_PAYLOAD>>>` markers
-- Calling Claude reads that payload and runs `/obsidian-save`-style propagation: spawns parallel subagents to update People/Projects/Ideas/Decisions per the synthesis's "Recommended Vault Updates" bullets
-- Links new research note from today's daily note
-
-Cost: typically $0.20-$0.80 per run depending on topic depth.
-
-Plain English: "do deep research on X", "research properly", "vault-aware research on X", "research and update the vault".
-
-Graceful degradation: if any phase fails partially (e.g. Grok unavailable), continues with available sources and flags the gap.
+Full procedure: `commands/research-deep.md`
 
 ---
 
@@ -979,22 +691,7 @@ Graceful degradation: if any phase fails partially (e.g. Grok unavailable), cont
 
 **Vault-first source-grounded research.** The parallel to `/research-deep` - but grounded in your own sources instead of the open web.
 
-Steps (4 phases + manual NotebookLM step):
-1. **Vault scan** - same logic as `/research-deep` Phase 1, finds top 12 most relevant notes
-2. **Bundle** - concatenates them into a single markdown source file at `Research/NotebookLM/YYYY-MM-DD — <slug> — bundle.md` (well under NotebookLM's 500K-char/source limit)
-3. **Prompt template** - script prints a structured prompt with sections: Source summary / Confirmed claims / Contradictions / Gaps / Recommended next reads / Confidence
-4. **User does the manual NotebookLM step:** open notebooklm.google.com, create a notebook, paste the bundle as a "Pasted Text" source, optionally add PDFs/URLs/Google Docs, paste the prompt, copy the response
-5. **Save response** - user runs `uv run -m scripts.research.notebooklm --save-response --topic "<topic>" --slug "<slug>"` and pastes response via stdin
-6. **Propagation** - same `/obsidian-save` flow as `/research-deep`
-
-When to use `/notebooklm` over `/research-deep`:
-- `/research-deep` (Perplexity + Grok): open-web + X-discourse coverage. Cost: $0.20-0.80
-- `/notebooklm`: GROUNDED IN your own sources (vault + any PDFs/URLs you add). Cost: ~$0 (uses your free NotebookLM access)
-- Run both for high-value topics - the open-web view and the grounded view rarely contradict, and the contradictions are where the insight is
-
-Why a manual step: NotebookLM's API is workspace-gated beta as of 2026-01. The pasted-source workflow works for every user with a free Google account.
-
-Plain English: "notebooklm this", "ask my notebook about X", "ground a research on X using my vault", "source-grounded research on X".
+Full procedure: `commands/notebooklm.md`
 
 ---
 
@@ -1002,19 +699,7 @@ Plain English: "notebooklm this", "ask my notebook about X", "ground a research 
 
 **Extract and summarize a YouTube video.** Transcript (free, no API key) + metadata + top comments (Data API v3, optional) → summarized via Grok. Add `--visual` to also *watch* the video: scene-change frame extraction Claude reads with its own vision.
 
-Steps:
-1. Parse video ID from URL or 11-char ID
-2. Run `uv run -m scripts.research.youtube_extract "<url>"` (add `--visual` for the frame layer, `--max-frames N` to cap frames read, default 24)
-3. Fetches transcript via `youtube-transcript-api`
-4. If `YOUTUBE_API_KEY` set: also fetches title, channel, view counts, top comments
-5. Sends transcript + comments to Grok for AI-first summary: TL;DR, Key Points, Notable Quotes, Themes, Comment Sentiment, Worth Following Up On
-6. **Default save: auto-saves** to `Research/YouTube/YYYY-MM-DD - <video-title-slug>.md`
-
-**`--visual` layer:** downloads the video (yt-dlp, <=720p) and extracts one frame per scene change (ffmpeg scene detection, not a fixed timer), so on-screen text, code, diagrams, slides, UI, and b-roll are captured. Hero frames are copied into `Research/YouTube/attachments/<slug>/` and embedded in the note; the full keyframe set is left on disk. The script prints a `FRAMES-FOR-CLAUDE` block - Claude then reads those frames (its own vision, no extra API call) and fills the note's `## Visual notes` section keyed by timestamp. Requires `yt-dlp` + `ffmpeg` on PATH; if missing or download fails, the visual layer is skipped and the transcript summary still saves. The pipeline is ported from claude-watch/claude-video (MIT).
-
-Plain English: "summarize this YouTube video", "extract this video", "watch this video", "what's on screen", or just paste a YouTube URL with a question. Use `--visual` when the ask is about what is *shown*, not just said.
-
-If the video has no captions and no API key set, the transcript path fails with a clear message; `--visual` can still read the video.
+Full procedure: `commands/youtube.md`
 
 ---
 
@@ -1022,17 +707,7 @@ If the video has no captions and no API key set, the transcript path fails with 
 
 **Extract and summarize a podcast episode.** Apple Podcasts URL or RSS feed → transcript (RSS `<podcast:transcript>` tag, Whisper API if `OPENAI_API_KEY` set, or show-notes fallback) → summarized via Grok.
 
-Steps:
-1. Parse Apple Podcasts URL (resolved to RSS via free iTunes Lookup API) or RSS feed URL
-2. Run `uv run -m scripts.research.podcast_extract "<url>"`
-3. Fetch episode metadata + audio URL + show notes from RSS
-4. Try transcript sources in order: `<podcast:transcript>` tag → Whisper API (if `OPENAI_API_KEY`) → show-notes-only
-5. Send transcript-or-shownotes to Grok for AI-first summary: TL;DR, Key Points, Notable Quotes, Themes, Guests & People Mentioned, Worth Following Up On
-6. **Default save: auto-saves** to `Research/Podcasts/YYYY-MM-DD — <episode-title-slug>.md`
-
-Plain English: "summarize this podcast", "what's in this episode", or just paste an Apple Podcasts URL.
-
-Spotify URLs are not supported (DRM blocks audio + transcript access). If no transcript path works and show notes are empty, the script fails with a clear message.
+Full procedure: `commands/podcast.md`
 
 ---
 
