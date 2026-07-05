@@ -10,9 +10,9 @@ The argument is the period: `today`, `week`, or `month`. Default to `week` if no
 
 1. Read `_CLAUDE.md` first if it exists in the vault root
 2. Determine the date range from the argument
-3. List all daily notes in the range with `list_files_in_dir("Daily/")`
-4. Spawn parallel subagents - one per daily note - to read and extract key points from each simultaneously
-5. Also spawn parallel agents to read dev logs and completed kanban tasks from the same period
+3. List all daily notes in the range (resolve the daily-notes folder per `references/folder-map.md` - do not assume `Daily/`; use Glob in Claude Code, `list_vault_files` via MCP)
+4. Read the daily notes in the range directly - they are small; per-note subagents cost more than they save. Only if the range exceeds ~2 weeks, spawn one subagent per week, each reading its week's notes and returning key points.
+5. Read dev logs and completed kanban tasks from the same period directly (same weekly batching if the period is long)
 6. Synthesize all agent results: what was worked on, decisions made, people interacted with, tasks completed, ideas captured
 7. Present as a clean narrative summary - not a raw dump of note content
 8. End the recap with a **Suggested questions for future-Claude** section: 4 to 5 questions this period's vault content is uniquely positioned to answer that the user has not asked yet. Each question must cite at least one specific note (with `[[wikilink]]`) so future-Claude can resolve it without re-scanning. Prefer questions that:

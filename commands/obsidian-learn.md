@@ -11,13 +11,10 @@ The optional argument is a scope: `recent` (last 30 days, default), `all` (entir
 1. Read `_CLAUDE.md` first if it exists in the vault root
 2. Read `index.md` and recent operation log for vault context (if `Logs/` exists: read the last 2-3 `Logs/YYYY-MM-DD.md` files; otherwise read `log.md`)
 
-3. Spawn parallel subagents to gather learnings:
+3. Spawn two parallel subagents to gather learnings (the five signal types below share two corpora - one agent per corpus, not per signal):
 
-   - **Lessons agent**: scan all daily notes for "Lesson learned" sections, "What didn't" sections, evening review insights
-   - **Decisions agent**: read all ADRs in `wiki/decisions/` - extract the rationale and outcome of each
-   - **Reports agent**: read recent emerge/synthesize/connect/challenge reports in `wiki/concepts/` (the auto-generated pattern reports)
-   - **Mistakes agent**: scan dev logs and daily notes for "what didn't work", "wasted time on", "next time", "lesson", phrases indicating learning from failure
-   - **Wins agent**: scan for patterns that worked - "this saved time", "this approach worked", recurring success patterns
+   - **Experience agent** (corpus: daily notes + dev logs): scan for "Lesson learned" and "What didn't" sections, evening review insights, failure signals ("what didn't work", "wasted time on", "next time", "lesson"), and success patterns ("this saved time", "this approach worked", recurring wins). Return each as (learning, evidence note, date).
+   - **Records agent** (corpus: wiki): read all ADRs in `wiki/decisions/` - extract the rationale and outcome of each - and the recent emerge/synthesize/connect/challenge reports in `wiki/concepts/` (the auto-generated pattern reports). Return each as (learning, evidence note, date).
 
 4. For each learning found, classify:
    - **Active**: still relevant, recurring, reinforced by recent activity

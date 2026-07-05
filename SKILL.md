@@ -488,9 +488,9 @@ Do not just return filenames - return enough context for the user to act.
 
 Steps:
 1. Determine the date range from the argument (default: `week` if not specified)
-2. List all daily notes in the range with `list_files_in_dir("Daily/")`
-3. Spawn parallel subagents - one per daily note - to read and extract key points from each simultaneously
-4. Also spawn parallel agents to read dev logs and completed kanban tasks from the same period
+2. List all daily notes in the range (resolve the daily-notes folder per `references/folder-map.md` - do not assume `Daily/`; use Glob in Claude Code, `list_vault_files` via MCP)
+3. Read the daily notes in the range directly - they are small; per-note subagents cost more than they save. Only if the range exceeds ~2 weeks, spawn one subagent per week, each reading its week's notes and returning key points.
+4. Read dev logs and completed kanban tasks from the same period directly (same weekly batching if the period is long)
 5. Synthesize all agent results: what was worked on, decisions made, people interacted with, tasks completed, ideas captured
 6. Present as a clean narrative summary - not a raw dump of note content
 
